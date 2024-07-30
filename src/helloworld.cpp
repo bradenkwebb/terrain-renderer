@@ -1,7 +1,7 @@
 #include <iostream>
 #include <windows.h>
-#include "GLFW/glfw3.h"
-#include <opengl32.lib>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 int main() {
     // if (!glfwInit()) {
