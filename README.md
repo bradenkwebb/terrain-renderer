@@ -12,3 +12,4 @@ In order to use the C/C++ debugger on VS Code, I also make sure to open the dire
 Developer Command Prompt for VS, navigating to the directory, and running `code .` from within the directory.
 
 
+I followed [this video](https://www.youtube.com/watch?v=hRInLNR9iRg) to get my setup to actually work.
