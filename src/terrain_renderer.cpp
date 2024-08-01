@@ -1,5 +1,10 @@
 #include "terrain_renderer.h"
 #include <iostream>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -11,6 +16,12 @@ TerrainRenderer::TerrainRenderer(std::string heightMapPath) {
     this->heightMapPath = heightMapPath;
     this->hasPath = true;
 };
+
+TerrainRenderer::~TerrainRenderer() {
+    if (this->heightMap) {
+        delete[] this->heightMap;
+    }
+}
 
 void TerrainRenderer::loadHeightMap(std::string const& heightMapPath) {
     int width, height, nrChannels;
@@ -25,6 +36,8 @@ void TerrainRenderer::loadHeightMap(std::string const& heightMapPath) {
         heightMap[i] = data[i] / 255.0f;
     }
     stbi_image_free(data);
+
+    std::cout << "Height map loaded successfully! Height: " << height << " Width: " << width << std::endl;
 
     this->heightMapPath = heightMapPath;
     this->hasPath = true;
@@ -74,5 +87,116 @@ void TerrainRenderer::createMesh() {
         }
     }
     std::cout << "There are " << this->terMeshIndices.size() << " triangle indices." << std::endl;
+
+    glGenVertexArrays(1, &this->VAO);
+    glGenBuffers(1, &this->VBO);
+    glGenBuffers(1, &this->EBO);
+
+    glBindVertexArray(this->VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+    glBufferData(GL_ARRAY_BUFFER, this->terMeshVertices.size() * sizeof(float), &this->terMeshVertices[0], GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->terMeshIndices.size() * sizeof(unsigned int), &this->terMeshIndices[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
     return;
+}
+
+unsigned int TerrainRenderer::compileShader(unsigned int type, const char* source) {
+    unsigned int shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    return shader;
+}
+
+unsigned int TerrainRenderer::linkProgram(unsigned int vertexShader, unsigned int fragmentShader) {
+    unsigned int program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    int success;
+    char infoLog[512];
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
+    return program;
+}
+
+void TerrainRenderer::createAndCompileShaders() {
+    const char* vertexShaderSource = R"(
+    #version 330 core
+    layout(location = 0) in vec3 aPos;
+
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+
+    void main() {
+        gl_Position = projection * view * model * vec4(aPos, 1.0);
+    }
+    )";
+
+    const char* fragmentShaderSource = R"(
+    #version 330 core
+    out vec4 FragColor;
+
+    void main() {
+        FragColor = vec4(0.6, 0.8, 0.2, 1.0); // Greenish color for terrain
+    }
+    )";
+
+    unsigned int vertexShader = this->compileShader(GL_VERTEX_SHADER, vertexShaderSource);
+    unsigned int fragmentShader = this->compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+    this->shaderProgram = this->linkProgram(vertexShader, fragmentShader);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+}
+
+void TerrainRenderer::render() {
+    glUseProgram(this->shaderProgram);
+    // Set up model, view and projection matrices
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 view = glm::lookAt(
+        glm::vec3(0.0f, 0.0f, 3.0f), // Camera position
+        glm::vec3(0.0f, 0.0f, 0.0f), // Target position
+        glm::vec3(0.0f, 1.0f, 0.0f)  // Up vector
+    );
+    glm::mat4 projection = glm::perspective(
+        glm::radians(45.0f),
+        800.0f / 600.0f,
+        0.1f,
+        100.0f
+    );
+
+    // Get location of the uniform variables in the shader program
+    int modelLoc = glGetUniformLocation(this->shaderProgram, "model");
+    int viewLoc = glGetUniformLocation(this->shaderProgram, "view");
+    int projectionLoc = glGetUniformLocation(this->shaderProgram, "projection");
+
+    // Set the uniform variables in the shader program
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Bind the VAO and draw the elements
+    glBindVertexArray(this->VAO);
+    glDrawElements(GL_TRIANGLES, this->terMeshIndices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
