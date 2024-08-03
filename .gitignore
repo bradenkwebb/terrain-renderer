@@ -1,2 +1,6 @@
 .vscode
 python_approach/.venv
+
+build/
+glm/
+*.zip
