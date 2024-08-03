@@ -4,7 +4,7 @@
 #include <vector>
 #include "hello_triangle.h"
 
-void showTriangle(GLFWwindow* window) {
+void helloTriangle(GLFWwindow* window) {
     const char *vertexShaderSource = "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
         "void main()\n"
@@ -18,6 +18,7 @@ void showTriangle(GLFWwindow* window) {
         "{\n"
             "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
         "}\0";
+    
     int success;
     char infoLog[512];
 

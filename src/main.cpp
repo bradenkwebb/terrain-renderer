@@ -12,7 +12,12 @@ void processInput(GLFWwindow* window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-int main() {
+int main(int argc, char* argv[]) {
+    std::cout << "Number of arguments: " << argc << std::endl;
+    for (int i = 0; i < argc; ++i) {
+        std::cout << "Argument " << i << ": " <<argv[i] << std::endl;
+    }
+
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -33,33 +38,35 @@ int main() {
         return -1;
     }
 
-    // showTriangle(window);
+    if (strcmp(argv[1], "tutorial") == 0) {
+        helloTriangle(window);
+    } else if (strcmp(argv[1], "terrain") == 0) {
+        ///////////////////////////////////////////////////////////////////////
+        // BEGINNING TERRAIN RENDERER STUFF BELOW
+        ///////////////////////////////////////////////////////////////////////
+        glEnable(GL_DEPTH_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // this enables wireframe mode
 
-    ///////////////////////////////////////////////////////////////////////
-    // BEGINNING TERRAIN RENDERER STUFF BELOW
-    ///////////////////////////////////////////////////////////////////////
+        TerrainRenderer terrain = TerrainRenderer();
+        terrain.loadHeightMap("assets/iceland_heightmap.png");
+        terrain.createMesh();
+        terrain.createAndCompileShaders();
 
-    glEnable(GL_DEPTH_TEST);
+        while (!glfwWindowShouldClose(window)) {
+            processInput(window);
+            glfwPollEvents();
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // this enables wireframe mode
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    TerrainRenderer terrain = TerrainRenderer();
-    terrain.loadHeightMap("assets/iceland_heightmap.png");
-    terrain.createMesh();
-    terrain.createAndCompileShaders();
+            terrain.render();
 
-    while (!glfwWindowShouldClose(window)) {
-        // processInput(window);
-        glfwPollEvents();
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        terrain.render();
-
-        glfwSwapBuffers(window);   
+            glfwSwapBuffers(window);   
+        }
+    } else {
+        std::cout << "Pass either \"tutorial\" or \"terrain\" as argument" << std::endl;
     }
-
+    
     glfwTerminate();
     return 0;
 }
