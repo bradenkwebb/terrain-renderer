@@ -15,7 +15,7 @@ const unsigned int SCR_HEIGHT = 600;
 int main(int argc, char* argv[]) {
     std::cout << "Number of arguments: " << argc << std::endl;
     for (int i = 0; i < argc; ++i) {
-        std::cout << "Argument " << i << ": " <<argv[i] << std::endl;
+        std::cout << "\tArgument " << i << ": " <<argv[i] << std::endl;
     }
 
     glfwInit();
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
         TerrainRenderer terrain = TerrainRenderer();
         terrain.loadHeightMap("assets/iceland_heightmap.png");
         terrain.createMesh();
-        terrain.createAndCompileShaders();
+        // terrain.createAndCompileShaders();
 
         while (!glfwWindowShouldClose(window)) {
             processInput(window);

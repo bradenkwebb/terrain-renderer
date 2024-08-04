@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "shader.h"
 
 TerrainRenderer::TerrainRenderer() {
     this->hasPath = false;
@@ -105,68 +106,6 @@ void TerrainRenderer::createMesh() {
 
     glBindVertexArray(0);
     return;
-}
-
-unsigned int TerrainRenderer::compileShader(unsigned int type, const char* source) {
-    unsigned int shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    int success;
-    char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    return shader;
-}
-
-unsigned int TerrainRenderer::linkProgram(unsigned int vertexShader, unsigned int fragmentShader) {
-    unsigned int program = glCreateProgram();
-    glAttachShader(program, vertexShader);
-    glAttachShader(program, fragmentShader);
-    glLinkProgram(program);
-
-    int success;
-    char infoLog[512];
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(program, 512, NULL, infoLog);
-        std::cout << "ERROR::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
-    return program;
-}
-
-void TerrainRenderer::createAndCompileShaders() {
-    const char* vertexShaderSource = R"(
-    #version 330 core
-    layout(location = 0) in vec3 aPos;
-
-    uniform mat4 model;
-    uniform mat4 view;
-    uniform mat4 projection;
-
-    void main() {
-        gl_Position = projection * view * model * vec4(aPos, 1.0);
-    }
-    )";
-
-    const char* fragmentShaderSource = R"(
-    #version 330 core
-    out vec4 FragColor;
-
-    void main() {
-        FragColor = vec4(0.6, 0.8, 0.2, 1.0); // Greenish color for terrain
-    }
-    )";
-
-    unsigned int vertexShader = this->compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    unsigned int fragmentShader = this->compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-    this->shaderProgram = this->linkProgram(vertexShader, fragmentShader);
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
 }
 
 void TerrainRenderer::render() {

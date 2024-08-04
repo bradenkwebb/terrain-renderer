@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "shader.h"
 
 class TerrainRenderer {
     private:
@@ -23,17 +24,14 @@ class TerrainRenderer {
         unsigned int shaderProgram;
 
     public:
+        Shader shader = Shader("src/terrain_shader.vs", "src/terrain_shader.fs");
         TerrainRenderer();
         TerrainRenderer(std::string heightMapPath);
         ~TerrainRenderer();
         void loadHeightMap();
         void loadHeightMap(std::string const& heightMapPath);
         void createMesh();
-        void createAndCompileShaders();
         void render();
-
-        unsigned int compileShader(unsigned int type, const char* source);
-        unsigned int linkProgram(unsigned int vertexShader, unsigned int fragmentShader);
 };
 
 #endif
