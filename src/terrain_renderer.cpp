@@ -1,4 +1,4 @@
-#include "terrain_renderer.h"
+#include "terrain_renderer.hpp"
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -7,7 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "shader.h"
+#include "shader.hpp"
 
 TerrainRenderer::TerrainRenderer() {
     this->hasPath = false;

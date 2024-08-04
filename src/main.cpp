@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <vector>
-#include "terrain_renderer.h"
-#include "hello_triangle.h"
+#include "terrain_renderer.hpp"
+#include "hello_triangle.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);

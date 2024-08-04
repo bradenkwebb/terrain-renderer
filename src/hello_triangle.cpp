@@ -2,8 +2,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
-#include "hello_triangle.h"
-#include "shader.h"
+#include "hello_triangle.hpp"
+#include "shader.hpp"
 
 void helloTriangle(GLFWwindow* window) {
 

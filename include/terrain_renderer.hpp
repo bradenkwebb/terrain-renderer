@@ -1,13 +1,11 @@
 #pragma once
-#ifndef TERRAIN_RENDER_H
-#define TERRAIN_RENDER_H
 
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "shader.h"
+#include "shader.hpp"
 
 class TerrainRenderer {
     private:
@@ -33,5 +31,3 @@ class TerrainRenderer {
         void createMesh();
         void render();
 };
-
-#endif
