@@ -2,11 +2,15 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "hello_triangle.hpp"
 #include "shader.hpp"
 #include "stb_image.h"
 
 void helloTriangle(GLFWwindow* window) {
+
 
     Shader shader("src/triangle_shader.vs", "src/triangle_shader.fs");
     
@@ -22,6 +26,12 @@ void helloTriangle(GLFWwindow* window) {
         0, 1, 3, // first triangle
         1, 2, 3
     };
+
+    // glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
+    // glm::mat4 trans = glm::mat4(1.0f);
+    // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0));
+    // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
+    // trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
 
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO); // create 1 vertex array object
@@ -107,7 +117,15 @@ void helloTriangle(GLFWwindow* window) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, faceTexture);
 
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        trans = glm::translate(trans, glm::vec3(0.5, -0.5f, 0.0f));
+
         shader.use();
+        
+        unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
