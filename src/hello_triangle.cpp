@@ -149,6 +149,10 @@ void helloTriangle(GLFWwindow* window) {
     unsigned int modelLoc, viewLoc, projLoc;
     glm::mat4 model, view, projection;
 
+    projection = glm::mat4(1.0f);
+    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+    shader.setMat4("projection", projection);
+
     glEnable(GL_DEPTH_TEST);
 
     glm::vec3 cubePositions[] = {
@@ -163,7 +167,20 @@ void helloTriangle(GLFWwindow* window) {
         glm::vec3( 1.5f,  0.2f, -1.5f), 
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
+
+    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
+
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
+    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
+
+    // Creates the look at matrix as defined here: https://learnopengl.com/Getting-started/Camera
+    view = glm::lookAt(cameraPos, cameraTarget, up);
     
+    const float radius = 10.0f;
+
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
@@ -176,23 +193,11 @@ void helloTriangle(GLFWwindow* window) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, faceTexture);
 
-        // glm::mat4 trans = glm::mat4(1.0f);
-        // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        // trans = glm::translate(trans, glm::vec3(0.5, -0.5f, 0.0f));
-
         shader.use();
-        
-        model = glm::mat4(1.0f);
-        view = glm::mat4(1.0f);
-        projection = glm::mat4(1.0f);
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        shader.setMat4("projection", projection);
+        float camX = radius * sin(glfwGetTime());
+        float camZ = radius * cos(glfwGetTime());
+        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), cameraTarget, up);
         shader.setMat4("view", view);
-
-        // modelLoc = glGetUniformLocation(shader.ID, "model");
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < 10; i++) {
