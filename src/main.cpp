@@ -5,12 +5,20 @@
 #include <vector>
 #include "terrain_renderer.hpp"
 #include "hello_triangle.hpp"
+#include "camera.hpp"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+bool firstMouse = true;
+float lastX = SCR_WIDTH / 2;
+float lastY = SCR_HEIGHT / 2;
+
+Camera* camera = new Camera();
 
 int main(int argc, char* argv[]) {
     std::cout << "Number of arguments: " << argc << std::endl;
@@ -32,14 +40,17 @@ int main(int argc, char* argv[]) {
  
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
- 
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
     if (strcmp(argv[1], "tutorial") == 0) {
-        helloTriangle(window);
+        helloTriangle(window, camera);
     } else if (strcmp(argv[1], "terrain") == 0) {
         ///////////////////////////////////////////////////////////////////////
         // BEGINNING TERRAIN RENDERER STUFF BELOW
@@ -82,3 +93,30 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
         glViewport(0, 0, width, height);
 };
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+    if (firstMouse) {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    float xoffset = xpos - lastX;
+    float yoffset = ypos - lastY;
+    lastX = xpos;
+    lastY = ypos;
+
+    const float sensitivity = 0.3f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    camera->adjustAngle(xoffset, yoffset);
+};
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    camera->fov -= (float)yoffset;
+    if (camera->fov < 1.0f) {
+        camera->fov = 1.0f;
+    }
+    if (camera->fov > 45.0f) {
+        camera->fov = 45.0f;
+    }
+}

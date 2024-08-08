@@ -8,6 +8,7 @@
 #include "hello_triangle.hpp"
 #include "shader.hpp"
 #include "stb_image.h"
+#include "camera.hpp"
 
 float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -53,42 +54,25 @@ float vertices[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
-void helloTriangle(GLFWwindow* window) {
+
+void helloTriangle(GLFWwindow* window, Camera* camera) {
     int SCR_WIDTH, SCR_HEIGHT;
     glfwGetWindowSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-
-    Shader shader("src/triangle_shader.vs", "src/triangle_shader.fs");
     
-    // float vertices[] = {
-    //     // positions          // colors           // texture coords
-    //     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-    //     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-    //     -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-    //     -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
-    // };
+    Shader shader("src/triangle_shader.vs", "src/triangle_shader.fs");
     
     unsigned int indices[] = {
         0, 1, 3, // first triangle
         1, 2, 3
     };
 
-    // glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-    // glm::mat4 trans = glm::mat4(1.0f);
-    // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0));
-    // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
-    // trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO); // create 1 vertex array object
     glGenBuffers(1, &VBO); // create 1 vertex buffer object
-    // glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
@@ -142,16 +126,12 @@ void helloTriangle(GLFWwindow* window) {
     }
     stbi_image_free(faceData);
 
-    shader.use();
-    shader.setInt("texture1", 0);
-    shader.setInt("texture2", 1);
-
     unsigned int modelLoc, viewLoc, projLoc;
     glm::mat4 model, view, projection;
 
-    projection = glm::mat4(1.0f);
-    projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-    shader.setMat4("projection", projection);
+    shader.use();
+    shader.setInt("texture1", 0);
+    shader.setInt("texture2", 1);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -168,23 +148,19 @@ void helloTriangle(GLFWwindow* window) {
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
 
-    glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-
-    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-    glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);
-
-    // Creates the look at matrix as defined here: https://learnopengl.com/Getting-started/Camera
-    view = glm::lookAt(cameraPos, cameraTarget, up);
-    
-    const float radius = 10.0f;
+    float currentFrame;
+    float deltaTime = 0.0f;
+    float lastFrame = 0.0f;
 
     while (!glfwWindowShouldClose(window)) {
+        currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             glfwSetWindowShouldClose(window, true);
         }
+        camera->processInput(window, deltaTime);
+        
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -194,10 +170,12 @@ void helloTriangle(GLFWwindow* window) {
         glBindTexture(GL_TEXTURE_2D, faceTexture);
 
         shader.use();
-        float camX = radius * sin(glfwGetTime());
-        float camZ = radius * cos(glfwGetTime());
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), cameraTarget, up);
+        view = camera->getView();
         shader.setMat4("view", view);
+
+        projection = glm::mat4(1.0f);
+        projection = glm::perspective(glm::radians(camera->fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        shader.setMat4("projection", projection);
 
         glBindVertexArray(VAO);
         for (unsigned int i = 0; i < 10; i++) {
@@ -215,5 +193,4 @@ void helloTriangle(GLFWwindow* window) {
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-}
+};
