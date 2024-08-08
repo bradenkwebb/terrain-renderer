@@ -9,6 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "camera.hpp"
 
-void helloTriangle(GLFWwindow* window, Camera* camera);
+void helloTriangle(GLFWwindow* window, Camera* camera, std::function<void(GLFWwindow* window)> inputProcessor);
 
 #endif

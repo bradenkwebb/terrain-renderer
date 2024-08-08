@@ -2,9 +2,16 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+enum CameraMovement {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
 class Camera {
 private:
-    glm::vec3 worldUp;
+    const glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f); // constant since gravity shouldn't change
     glm::vec3 cameraUp;
     glm::vec3 cameraPos;
     glm::vec3 cameraFront;
@@ -14,7 +21,8 @@ private:
 public:
     float fov = 45.0f;
     Camera();
-    void processInput(GLFWwindow* window, const float deltaTime);
     glm::mat4 getView();
-    void adjustAngle(float xoffset, float yoffset);
+    void processKeyboard(CameraMovement direction, const float deltaTime);
+    void processMouseMovement(float xoffset, float yoffset);
+    void processMouseScroll(double xoffset, double yoffset);
 };

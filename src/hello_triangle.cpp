@@ -55,7 +55,7 @@ float vertices[] = {
 };
 
 
-void helloTriangle(GLFWwindow* window, Camera* camera) {
+void helloTriangle(GLFWwindow* window, Camera* camera, std::function<void(GLFWwindow* window)> processInput) {
     int SCR_WIDTH, SCR_HEIGHT;
     glfwGetWindowSize(window, &SCR_WIDTH, &SCR_HEIGHT);
     
@@ -148,19 +148,8 @@ void helloTriangle(GLFWwindow* window, Camera* camera) {
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
 
-    float currentFrame;
-    float deltaTime = 0.0f;
-    float lastFrame = 0.0f;
-
     while (!glfwWindowShouldClose(window)) {
-        currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, true);
-        }
-        camera->processInput(window, deltaTime);
-        
+        processInput(window); 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         

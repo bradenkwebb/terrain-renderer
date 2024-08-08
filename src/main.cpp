@@ -18,6 +18,10 @@ bool firstMouse = true;
 float lastX = SCR_WIDTH / 2;
 float lastY = SCR_HEIGHT / 2;
 
+float currentFrame;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 Camera* camera = new Camera();
 
 int main(int argc, char* argv[]) {
@@ -50,7 +54,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (strcmp(argv[1], "tutorial") == 0) {
-        helloTriangle(window, camera);
+        helloTriangle(window, camera, processInput);
     } else if (strcmp(argv[1], "terrain") == 0) {
         ///////////////////////////////////////////////////////////////////////
         // BEGINNING TERRAIN RENDERER STUFF BELOW
@@ -84,8 +88,23 @@ int main(int argc, char* argv[]) {
 
 
 void processInput(GLFWwindow* window) {
+    currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        camera->processKeyboard(FORWARD, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        camera->processKeyboard(LEFT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        camera->processKeyboard(RIGHT, deltaTime);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        camera->processKeyboard(BACKWARD, deltaTime);
     }
 }
 
@@ -108,15 +127,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    camera->adjustAngle(xoffset, yoffset);
+    camera->processMouseMovement(xoffset, yoffset);
 };
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    camera->fov -= (float)yoffset;
-    if (camera->fov < 1.0f) {
-        camera->fov = 1.0f;
-    }
-    if (camera->fov > 45.0f) {
-        camera->fov = 45.0f;
-    }
+    camera->processMouseScroll(xoffset, yoffset);
 }
