@@ -1,7 +1,7 @@
 .vscode
-python_approach/.venv
 
 build/
 glm/
+assimp/
 *.zip
 assets/Rocky Land and Rivers/*
